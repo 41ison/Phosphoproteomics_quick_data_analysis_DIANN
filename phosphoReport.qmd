@@ -1,0 +1,917 @@
+---
+title: "Phosphopeptide enrichment pilot report"
+authors: "Alison FA Chaves and Bianca CSC Barros"
+format:
+  html:
+    toc: true
+    number-sections: true
+    toc-depth: 2
+---
+
+## Description of data analysis using DIA-NN report
+
+This is a pilot experiment using two cryopreserved kidney samples, one control and another from envenomed mouse. Peptides were injected in Q-Exactive instrument in DIA mode. Raw files were converted to raw.dia and analyzed using DIA-NN.
+
+File identification for each test:
+
+-   **Testing different gradients**
+
+"AFAC_01_oldGrad" stands for eluate from Fe-NTA using an old gradient (sample K2 = SS3Kna1) 250µg
+
+"AFAC_01" stands for eluate from Fe-NTA using an adjusted gradient (sample K2 = SS3Kna1) 250µg
+
+"AFAC_02_oldGrad" stands for eluate from Fe-NTA using an old gradient (sample K14 = VS3Kna2) 250µg
+
+"AFAC_02" stands for eluate from Fe-NTA using an adjusted gradient (sample K14 = VS3Kna2) 250µg
+
+-   **Flow through from Fe-NTA onto TiO2 cartridges**
+
+"AFAC_03" stands for eluate from TiO2 using an old gradient (sample K2 = SS3Kna1) 250µg
+
+"AFAC_04" stands for eluate from TiO2 using an old gradient (sample K14 = VS3Kna2) 250µg
+
+-   **Flow Through from TiO2 coming from IMAC-TiO2 or only TiO2 strategy**
+
+"AFAC_05" stands for FT from IMAC-TiO2 using an old gradient (sample K2 = SS3Kna2) 250µg
+
+"AFAC_06" stands for FT from IMAC-TiO2 using an old gradient (sample K14 = VS3Kna2) 250µg
+
+"AFAC_07" stands for FT from TiO2 using an old gradient (sample K1 = SS3Kna1) 500µg
+
+"AFAC_08" stands for FT from TiO2 using an old gradient (sample K13 = VS3Kna1) 500µg
+
+-   **Testing different spray voltages (1.5 KV vs 2.1 KV)**
+
+"AFAC_07_221216022013" stands for eluate from TiO2 using an old gradient and 2.1 KV (sample K1 = SS3Kna1) 500µg
+
+"AFAC_08_221216044325" stands for eluate from TiO2 using an old gradient and 2.1 KV (sample K13 = VS3Kna1) 500µg
+
+"AFAC_09" stands for eluate from TiO2 using an old gradient and 1.5 KV (sample K1 = SS3Kna1) 500µg
+
+"AFAC_10" stands for eluate from TiO2 using an old gradient and 1.5 KV (sample K13 = VS3Kna1) 500µg.
+
+## Loading files and libraries
+
+```{r}
+#| echo: true
+#| warning: false
+library(tidyverse)
+library(ggridges)
+library(ggpubr)
+library(cowplot)
+library(VennDiagram)
+library(eulerr)
+library(gghalves)
+library(ggdist)
+library(kableExtra)
+
+report_stats <- read_tsv("report.stats.tsv")
+report <- read_tsv("report.tsv")
+```
+
+## **Evaluating the effect of different gradients over phosphopeptide enrichment**
+
+```{r}
+#| echo: false
+time_gradient <- c(0, 2, 24, 59, 70, 75, 82, 120, 0, 2, 24, 70, 80, 82, 120)
+b_solvent <- c(3, 6, 18, 32, 40, 55, 100, 100, 8, 10, 20, 40, 55, 100, 100)
+Method <- c(rep("adjusted", 8), rep("old", 7))
+Gradient_test <- data.frame(time_gradient, b_solvent, Method)
+
+ggplot(Gradient_test,
+       aes(x = time_gradient, y = b_solvent, color = Method)) +
+  geom_line(linewidth = .8) + 
+  theme(panel.background = element_rect(fill = "#eaf2f2", colour = "#eaf2f2"),
+        plot.background = element_rect(fill = "#eaf2f2", colour = "#eaf2f2"),
+        legend.background = element_rect(fill = "#eaf2f2"),
+  legend.key = element_rect(fill = "#eaf2f2", color = NA),
+  text = element_text(size = 18)) +
+  xlab("Time (minutes)") + ylab("Solvent B (%)") +
+  scale_color_manual(values = c("#56B4E9", "#E69F00"))
+```
+
+```{r}
+#| echo: false
+# Gradient test using the file report.tsv. Dataframe was filtered for runs matching different gradients for data analysis.
+gradient_report <- report %>%
+  filter(Run == "AFAC-01.raw" |
+           Run == "AFAC-01_oldGrad.raw" |
+           Run == "AFAC-02.raw" |
+           Run == "AFAC-02_oldGrad.raw")
+gradient_report$Run <- gsub("AFAC-01.raw", "Fe3_adjGrad_ctrl",
+                            gradient_report$Run)
+gradient_report$Run <- gsub("AFAC-01_oldGrad.raw", "Fe3_oldGrad_ctrl",
+                            gradient_report$Run)
+gradient_report$Run <- gsub("AFAC-02.raw", "Fe3_adjGrad_ven",
+                            gradient_report$Run)
+gradient_report$Run <- gsub("AFAC-02_oldGrad.raw", "Fe3_oldGrad_ven",
+                            gradient_report$Run)
+gradient_report$Run <- factor(gradient_report$Run,
+                                levels = c("Fe3_adjGrad_ctrl", "Fe3_oldGrad_ctrl",
+                                           "Fe3_adjGrad_ven", "Fe3_oldGrad_ven"))
+```
+
+Protein quantity in log2(MaxLFQ) per sample. In blue: adjusted gradient, orange: old gradient.
+
+```{r}
+#| echo: false
+#| warning: false
+ggplot(gradient_report, aes(x = Run, 
+                            y = log2(PG.MaxLFQ), 
+                            fill = Run)) +
+  geom_boxplot(show.legend = FALSE,
+               width = .15) +
+  stat_halfeye(adjust = .33,
+               width = .65,
+               color = NA,
+               alpha = .2,
+               position = position_nudge(x=.15)) +
+theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+  text = element_text(size = 18)) +
+  scale_fill_manual(values = c("#56B4E9", "#E69F00",
+                               "#56B4E9", "#E69F00"),
+                               guide = "none") +
+  scale_color_manual(values = c("#56B4E9", "#E69F00", 
+                                "#56B4E9", "#E69F00"),
+                                guide = "none") +
+  xlab("Condition") + ylab("log2(MaxLFQ)")
+```
+
+Peak width of two samples using different gradients for IMAC-enriched peptides from 250 µg protein. Y-axis: log2(MaxLFQ); X-axis: peak width; color: phosphopetides found using adjusted gradient (blue), phosphopetides found using old gradient (orange), total number of identified peptides (grey background).
+
+```{r}
+#| echo: false
+#| warning: false
+ggplot(filter(gradient_report, 
+              PTM.Site.Confidence > .9,
+              str_detect(Modified.Sequence, "UniMod:21")), 
+       aes(x = RT.Stop-RT.Start,
+           y = log2(PG.MaxLFQ))) +
+  geom_point(data = transform(gradient_report, Run = NULL), color = "grey90") +
+  geom_point(aes(color = Run), alpha = .4) +
+  xlim(0.31,0.35) +
+  facet_wrap(~Run, scales = "free") + guides(color = FALSE) +
+  theme_cowplot() +
+  scale_color_manual(values = c("#56B4E9", "#E69F00", "#56B4E9", "#E69F00")) +
+  xlab("Peak width") +
+  labs(title = "Peak width of two samples using different gradients",
+       caption = "IMAC-enriched peptides from 250 µg protein")
+
+gradient_report %>%
+  filter(str_detect(Modified.Sequence, "UniMod:21"),
+  PTM.Site.Confidence > .9) %>% 
+  distinct(Modified.Sequence, .keep_all = T) %>%
+  count(Run) %>% 
+  kbl(caption = "Phosphopeptides confidently identified",
+      col.names = c("Sample", "Phosphopetides")) %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+Chromatograms for gradient test. MS2-based quantity of the precursor (charged peptide), non-normalized is showed in Y-axis and retention time in minutes on X-axis. IMAC-enriched peptides from 250 µg protein. in blue: adjusted gradient, orange: old gradient.
+
+```{r}
+#| echo: false
+ggplot(gradient_report,
+       aes(x = RT, y = Precursor.Quantity, color = Run)) +
+  geom_line() + theme_cowplot() +
+  facet_wrap(~Run, scales = "free") +
+  guides(color = FALSE) +
+  xlab("Retention time (min)") + ylab("Precursor quantity") +
+  labs(caption = "IMAC-enriched peptides from 250 µg protein") +
+  scale_color_manual(values = c("#56B4E9", "#E69F00", "#56B4E9", "#E69F00")) +
+  theme(text = element_text(size = 18))
+```
+
+```{r}
+#| echo: false
+# Preparing panel plots for summarizing gradient test
+p1 <- ggplot(filter(gradient_report, PTM.Site.Confidence >.95),
+       aes(x = PTM.Site.Confidence,
+           y = Run,
+           fill = Run)) +
+  stat_density_ridges(quantile_lines = TRUE, quantiles = 2,
+                      alpha = 0.5, show.legend = FALSE) +
+  theme_classic() +
+  ylab("Condtition") + xlab("PTM site confidence") +
+  scale_fill_manual(values = c("#56B4E9", "#E69F00", "#56B4E9", "#E69F00"))
+
+p2 <- ggplot(filter(gradient_report, Quantity.Quality >.5),
+       aes(x = Quantity.Quality,
+           y = Run,
+           fill = Run)) +
+  stat_density_ridges(quantile_lines = TRUE, quantiles = 2,
+                      alpha = .5, show.legend = FALSE) +
+  theme_classic() +
+  ylab("Condtition") + xlab("Quantity quality") +
+  scale_fill_manual(values = c("#56B4E9", "#E69F00", "#56B4E9", "#E69F00"))
+
+gradient_report_stats <- report_stats %>%
+  filter(File.Name == "Fe3_adjGrad_ctrl" |
+           File.Name == "Fe3_oldGrad_ctrl" |
+           File.Name == "Fe3_adjGrad_ven" |
+           File.Name == "Fe3_oldGrad_ven")
+
+# gradient comparison using file report_stats.tsv
+gradient_report_stats$File.Name <- factor(gradient_report_stats$File.Name,
+                                levels = c("Fe3_adjGrad_ctrl", "Fe3_oldGrad_ctrl",
+                                           "Fe3_adjGrad_ven", "Fe3_oldGrad_ven"))
+plot1 <- ggplot(gradient_report_stats,
+                aes(x = File.Name, y = Precursors.Identified)) +
+  xlab("Condition") + ylab("Precursor count") +
+  geom_col(width = .7, fill = c("#E69F00","#56B4E9", "#E69F00", "#56B4E9")) +
+  theme_classic() +
+  geom_bracket(xmin = c("Fe3_adjGrad_ctrl", "Fe3_adjGrad_ven"),
+               xmax = c("Fe3_oldGrad_ctrl", "Fe3_oldGrad_ven"),
+               y.position = c(21000, 22000),
+               label = c("diff = 300 precursors", "diff = 1453 precursors"),
+               label.size = 3) +
+  geom_text(aes(label = Precursors.Identified),
+            position = position_dodge(width = 0.9), vjust = -0.25) +
+  geom_vline(xintercept = 2.5, color = "grey", linetype = "dashed") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+plot2 <- ggplot(gradient_report_stats,
+                aes(x = File.Name, y = Proteins.Identified)) +
+  xlab("Condition") + ylab("Protein inferred") +
+  geom_col(width = .7, fill = c("#E69F00", "#56B4E9", "#E69F00", "#56B4E9")) +
+  theme_classic() +
+  geom_bracket(xmin = c("Fe3_adjGrad_ctrl", "Fe3_adjGrad_ven"),
+               xmax = c("Fe3_oldGrad_ctrl", "Fe3_oldGrad_ven"),
+               y.position = c(3000, 3000),
+               label = c("diff = 33 proteins", "diff = 80 proteins"),
+               label.size = 3) +
+  geom_text(aes(label = Proteins.Identified),
+            position = position_dodge(width = 0.9), vjust = -0.25) +
+  geom_vline(xintercept = 2.5, color = "grey", linetype = "dashed") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+plot3 <- ggplot(gradient_report_stats,
+                aes(x = File.Name, y = MS1.Signal)) +
+  xlab("Condition") + ylab("MS1 signal") +
+  geom_col(width = .7, fill = c("#E69F00", "#56B4E9", "#E69F00", "#56B4E9")) +
+  theme_classic() + coord_flip() +
+  geom_text(aes(label = MS1.Signal),
+            position = position_dodge(width = 0.9), vjust = -0.25) +
+  geom_vline(xintercept = 2.5, color = "grey", linetype = "dashed")
+
+plot4 <- ggplot(gradient_report_stats,
+                aes(x = File.Name, y = MS2.Signal)) +
+  xlab("Condition") + ylab("MS2 signal") +
+  geom_col(width = .7, fill = c("#E69F00", "#56B4E9", "#E69F00", "#56B4E9")) +
+  theme_classic() + coord_flip() +
+  geom_text(aes(label = MS2.Signal),
+            position = position_dodge(width = 0.9), vjust = -0.25) +
+  geom_vline(xintercept = 2.5, color = "grey", linetype = "dashed") +
+  labs(colours = "Gradient")
+```
+
+Testing the effect of adjusted gradient over phosphopeptide enriched using IMAC. Slightly more identifications (all identified peptides) using adjusted gradient. **A.** Number of precursors per sample, **B.** number of inferred proteins per sample; **Color:** blue - results for adjusted gradient, orange - results for old gradient.
+
+```{r}
+#| echo: false
+plot_grid(plot1, plot2,
+                    labels = "AUTO",
+                    nrow = 1, ncol = 2)
+```
+
+Testing the effect of adjusted gradient over the signal of phosphopeptide enriched using IMAC (all peptides). Differences are not consistent between samples and different gradients. **A.** MS1 signal, **B.** MS2 signal; **Color:** blue - results for adjusted gradient, orange - results for old gradient.
+
+```{r}
+#| echo: false
+plot_grid(plot3, plot4, labels = "AUTO", nrow = 1, ncol = 2)
+```
+
+Testing the effect of different gradients over the phosphorylation site localization confidence for IMAC-enriched peptides. Differences are not significant. **A.** PTM site confidence for each sample (1 - Site.PEP), **B.** Quantity quality; **Color:** blue - results for adjusted gradient, orange - results for old gradient.
+
+```{r}
+#| echo: false
+#| warning: false
+plot_grid(p1, p2, labels = "AUTO", nrow = 1, ncol = 2)
+```
+
+## **Evaluating the effect of spray voltage (1.5 KV vs 2.1 KV) over phosphopeptide enrichment**
+
+```{r}
+#| echo: false
+# Preparing data for spray voltage comparisons.
+voltage_report <- report %>% filter(Run == "AFAC-07_221216022013.raw" |
+                                       Run == "AFAC-08_221216044325.raw" |
+                                       Run == "AFAC-09.raw" |
+                                       Run == "AFAC-10.raw")
+voltage_report$Run <- gsub("AFAC-07_221216022013.raw", "TiO2_2.1KV_ctrl",
+                           voltage_report$Run)
+voltage_report$Run <- gsub("AFAC-08_221216044325.raw", "TiO2_2.1KV_ven",
+                           voltage_report$Run)
+voltage_report$Run <- gsub("AFAC-09.raw", "TiO2_1.5KV_ctrl",
+                           voltage_report$Run)
+voltage_report$Run <- gsub("AFAC-10.raw", "TiO2_1.5KV_ven",
+                           voltage_report$Run)
+voltage_report$Run <- factor(voltage_report$Run,
+                              levels = c("TiO2_2.1KV_ctrl", "TiO2_1.5KV_ctrl",
+                                         "TiO2_2.1KV_ven", "TiO2_1.5KV_ven"))
+
+voltage_report_stats <- report_stats %>%
+  filter(File.Name == "TiO2_2.1KV_ctrl" |
+           File.Name == "TiO2_2.1KV_ven" |
+           File.Name == "TiO2_1.5KV_ctrl" |
+           File.Name == "TiO2_1.5KV_ven")
+
+voltage_report_stats$File.Name <- factor(voltage_report_stats$File.Name,
+                                   levels = c("TiO2_2.1KV_ctrl", "TiO2_1.5KV_ctrl",
+                                              "TiO2_2.1KV_ven", "TiO2_1.5KV_ven"))
+```
+
+Peak width of two samples obtained using different spray voltage (1.5 or 2.1 KV) for TiO2-enriched peptides from 500 µg protein. Y-axis: log2(MaxLFQ); X-axis: peak width; color: phosphopetide found using 2.1 KV (blue), phosphopetides found using 1.5 KV (orange), total number of identified peptides (grey background).
+
+```{r}
+#| echo: false
+#| warning: false
+ggplot(filter(voltage_report, 
+              PTM.Site.Confidence > .9,
+              str_detect(Modified.Sequence, "UniMod:21")),
+       aes(x = RT.Stop-RT.Start,
+           y = log2(PG.MaxLFQ))) +
+  geom_point(data = transform(voltage_report, Run = NULL), color = "grey90") +
+  geom_point(aes(color = Run), alpha = .4) +
+  xlim(0.3,0.35) +
+  facet_wrap(~Run, scales = "free") + guides(color = FALSE) +
+  theme_cowplot() +
+  scale_color_manual(values = c("#56B4E9", "#E69F00", "#56B4E9", "#E69F00")) +
+  xlab("Peak width") +
+  labs(title = "Peak width of two samples using different spray voltage",
+       caption = "TiO2-enriched peptides from 500 µg protein")
+
+voltage_report %>%
+  filter(PTM.Site.Confidence > .9,
+  str_detect(Modified.Sequence, "UniMod:21")) %>% 
+  distinct(Modified.Sequence, .keep_all = T) %>%
+  count(Run) %>% 
+   kbl(caption = "Phosphopeptides confidently identified",
+      col.names = c('Sample', 'Phosphopetides')) %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+Chromatograms for spray voltage test. MS2-based quantity of the precursor (charged peptide), non-normalized is showed in Y-axis and retention time in minutes on X-axis. TiO2-enriched peptides from 500 µg protein. in blue: 2.1 KV, orange: 1.5 KV.
+
+```{r}
+#| echo: false
+ggplot(voltage_report,
+       aes(x = RT, y = Precursor.Quantity, color = Run)) +
+  geom_line() + theme_cowplot() +
+  facet_wrap(~Run, scales = "free") +
+  guides(color = FALSE) +
+  xlab("Retention time (min)") + ylab("Precursor quantity") +
+  labs(caption = "TiO2-enriched peptides from 500 µg protein") +
+  scale_color_manual(values = c("#56B4E9", "#E69F00", "#56B4E9", "#E69F00"))
+```
+
+```{r}
+#| echo: false
+# Preparing data for spray voltage comparisons using file report_stats.tsv file.
+p3 <- ggplot(filter(voltage_report, PTM.Site.Confidence >.95),
+             aes(x = PTM.Site.Confidence,
+                 y = Run,
+                 fill = Run)) +
+  stat_density_ridges(quantile_lines = TRUE, quantiles = 2,
+                      alpha = 0.5, show.legend = FALSE) +
+  theme_classic() +
+  ylab("Condtition") + xlab("PTM site confidence") +
+  scale_fill_manual(values = c("#56B4E9", "#E69F00", "#56B4E9", "#E69F00"))
+
+p4 <- ggplot(filter(voltage_report, Quantity.Quality >.5),
+             aes(x = Quantity.Quality,
+                 y = Run,
+                 fill = Run)) +
+  stat_density_ridges(quantile_lines = TRUE, quantiles = 2,
+                      alpha = .5, show.legend = FALSE) +
+  theme_classic() +
+  ylab("Condtition") + xlab("Quantity quality") +
+  scale_fill_manual(values = c("#56B4E9", "#E69F00", "#56B4E9", "#E69F00"))
+
+plot5 <- ggplot(voltage_report_stats,
+                aes(x = File.Name, y = Precursors.Identified)) +
+  xlab("Condition") + ylab("Precursor count") +
+  geom_col(width = .7, fill = c("#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
+  theme_classic() +
+  geom_bracket(xmin = c("TiO2_2.1KV_ctrl", "TiO2_2.1KV_ven"),
+               xmax = c("TiO2_1.5KV_ctrl", "TiO2_1.5KV_ven"),
+               y.position = c(30000, 30500),
+               label = c("diff = 75 precursors", "diff = 1748 precursors"),
+               label.size = 3) +
+  geom_text(aes(label = Precursors.Identified),
+            position = position_dodge(width = 0.9), vjust = -0.25) +
+  geom_vline(xintercept = 2.5, color = "grey", linetype = "dashed") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+plot6 <- ggplot(voltage_report_stats,
+                aes(x = File.Name, y = Proteins.Identified)) +
+  xlab("Condition") + ylab("Protein identified") +
+  geom_col(width = .7, fill = c("#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
+  theme_classic() +
+  geom_bracket(xmin = c("TiO2_2.1KV_ctrl", "TiO2_2.1KV_ven"),
+               xmax = c("TiO2_1.5KV_ctrl", "TiO2_1.5KV_ven"),
+               y.position = c(4100, 4200),
+               label = c("diff = 560 proteins", "diff = 549 proteins"),
+               label.size = 3) +
+  geom_text(aes(label = Proteins.Identified),
+            position = position_dodge(width = 0.9), vjust = -0.25) +
+  geom_vline(xintercept = 2.5, color = "grey", linetype = "dashed") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+plot7 <- ggplot(voltage_report_stats,
+                aes(x = File.Name, y = MS1.Signal)) +
+  xlab("Condition") + ylab("MS1 signal") +
+  geom_col(width = .7, fill = c("#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
+  theme_classic() + coord_flip() +
+  geom_text(aes(label = MS1.Signal),
+            position = position_dodge(width = 0.9), vjust = -0.25) +
+  geom_vline(xintercept = 2.5, color = "grey", linetype = "dashed")
+
+plot8 <- ggplot(voltage_report_stats,
+                aes(x = File.Name, y = MS2.Signal)) +
+  xlab("Condition") + ylab("MS2 signal") +
+  geom_col(width = .7, fill = c("#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
+  theme_classic() + coord_flip() +
+  geom_text(aes(label = MS2.Signal),
+            position = position_dodge(width = 0.9), vjust = -0.25) +
+  geom_vline(xintercept = 2.5, color = "grey", linetype = "dashed")
+```
+
+Testing the effect of spray voltage (1.5 KV vs 2.1 KV) over phosphopeptides enriched using TiO2. Differences in precursor numbers are not consistent, but the number of proteins inferred are slightly higher using 1.5 KV spray voltage. **A.** Number of precursors per sample, **B.** number of inferred proteins per sample; **Color:** blue - results for 2.1 KV, orange - results for 1.5 KV.
+
+```{r}
+#| echo: false
+plot_grid(plot5, plot6, labels = "AUTO", nrow = 1, ncol = 2)
+```
+
+Testing the effect of different spray voltage over the signal of phosphopeptides enriched using TiO2 (all peptides). Differences are not consistent between samples and different spray voltages. **A.** MS1 signal, **B.** MS2 signal; **Color:** blue - results for 2.1 KV, orange - results for 1.5 KV.
+
+```{r}
+#| echo: false
+plot_grid(plot7, plot8, labels = "AUTO", nrow = 1, ncol = 2)
+```
+
+Testing the effect of different spray voltage over the phosphorylation site localization confidence for TiO2-enriched peptides. Differences are not significant. **A.** PTM site confidence for each sample (1 - Site.PEP), **B.** Quantity quality; **Color:** blue - results for 2.1 KV, orange - results for 1.5 KV.
+
+```{r}
+#| echo: false
+plot_grid(p3, p4, labels = "AUTO", nrow = 1, ncol = 2)
+```
+
+## **Comparing different phosphopeptides enrichment strategies (Fe-NTA, TiO2, and FT from Fe-NTA onto TiO2 cartridges)**
+
+```{r}
+#| echo: false
+# Preparing data for analysis.
+comparison_report <- report %>%
+  filter(Run == "AFAC-01_oldGrad.raw" |
+           Run == "AFAC-02_oldGrad.raw" |
+           Run == "AFAC-03.raw" |
+           Run == "AFAC-04.raw" |
+           Run == "AFAC-07_221216022013.raw" |
+           Run == "AFAC-08_221216044325.raw")
+
+comparison_report$Run <- gsub("AFAC-01_oldGrad.raw", "Fe3_ctrl",
+                              comparison_report$Run)
+comparison_report$Run <- gsub("AFAC-02_oldGrad.raw", "Fe3_ven",
+                              comparison_report$Run)
+comparison_report$Run <- gsub("AFAC-03.raw", "Fe3_TiO2_ctrl",
+                              comparison_report$Run)
+comparison_report$Run <- gsub("AFAC-04.raw", "Fe3_TiO2_ven",
+                              comparison_report$Run)
+comparison_report$Run <- gsub("AFAC-07_221216022013.raw", "TiO2_ctrl",
+                              comparison_report$Run)
+comparison_report$Run <- gsub("AFAC-08_221216044325.raw", "TiO2_ven",
+                              comparison_report$Run)
+
+comparison_report$Run <- factor(comparison_report$Run,
+                              levels = c("Fe3_ctrl", "Fe3_ven",
+                                         "TiO2_ctrl", "TiO2_ven",
+                                         "Fe3_TiO2_ctrl", "Fe3_TiO2_ven"))
+```
+
+Protein intensities for two samples for each strategy. Y-axis stands for log2(MaxLFQ). X-axis stands for sample. Color stands for strategy, where blue: Fe-NTA, orange: TiO2, and green: FT from IMAC onto TiO2.
+
+```{r}
+#| echo: false
+#| warning: false
+ggplot(comparison_report, aes(x = Run,
+                              y = log2(PG.MaxLFQ),
+                              fill = Run)) +
+  geom_boxplot(show.legend = FALSE,
+               width = .15) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90,
+                                   vjust = 0.5,
+                                   hjust = 1)) +
+  scale_fill_manual(values = c("#56B4E9", "#56B4E9",
+                               "#E69F00", "#E69F00",
+                               "#27AE60", "#27AE60"),
+                    guide = "none",
+                    text = element_text(size = 18)) +
+ geom_vline(xintercept = c(2.5,4.5),
+            color = "grey",
+            linetype = "dashed") +
+  xlab("Strategy of enrichment") + ylab("log2(MaxLFQ)")
+
+comparison_report %>%
+  filter(str_detect(Modified.Sequence, "UniMod:21") &
+         PTM.Site.Confidence > .9) %>% 
+  distinct(Modified.Sequence, .keep_all = T) %>%
+  count(Run) %>% 
+   kbl(caption = "Phosphopeptides confidently identified",
+      col.names = c('Sample', 'Phosphopetides')) %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+Peak width of two samples using different phosphopeptide enrichment strategies. TiO2 used 500 µg proteins, all other used 250 µg proteins. Y-axis: log2(MaxLFQ); X-axis: peak width; color: phosphopetides enriched after Fe-NTA (blue), phosphopetides enriched after TiO2 (orange), total number of identified peptides (grey background).
+
+```{r}
+#| echo: false
+#| warning: false
+ggplot(filter(comparison_report,
+              str_detect(Run, "ctrl") &
+              str_detect(Modified.Sequence, "UniMod:21") &
+              PTM.Site.Confidence > .9),
+       aes(x = RT.Stop-RT.Start,
+       y = log2(PG.MaxLFQ))) +
+  geom_point(data = transform(comparison_report,
+                              Run = NULL),
+                              color = "grey90") +
+  geom_point(aes(color = Run), alpha = .4) +
+  xlim(0.31,0.35) +
+  facet_wrap(~Run, scales = "free") + guides(color = FALSE) +
+  theme_cowplot() +
+  scale_color_manual(values = c("#56B4E9", "#E69F00", "#27AE60")) +
+  xlab("Peak width") +
+  labs(caption = "TiO2 used 500µg proteins, all other used 250 µg proteins") +
+  theme(text = element_text(size = 18))
+```
+
+```{r}
+#| echo: false
+#| warning: false
+ggplot(filter(comparison_report,
+              str_detect(Run, "ven") &
+              str_detect(Modified.Sequence, "UniMod:21") &
+              PTM.Site.Confidence > .9),
+       aes(x = RT.Stop-RT.Start,
+       y = log2(PG.MaxLFQ))) +
+  geom_point(data = transform(comparison_report, 
+                              Run = NULL), color = "grey90") +
+  geom_point(aes(color = Run), alpha = .4) +
+  xlim(0.31,0.35) +
+  facet_wrap(~Run, scales = "free") + guides(color = FALSE) +
+  theme_cowplot() +
+  scale_color_manual(values = c("#56B4E9", "#E69F00", "#27AE60")) +
+  xlab("Peak width") +
+  labs(caption = "TiO2 used 500µg proteins, all other used 250 µg proteins") +
+  theme(text = element_text(size = 18))
+ 
+```
+
+Chromatograms for different phosphoenrichment strategies. MS2-based quantity of the precursor (charged peptide), non-normalized is showed in Y-axis and retention time in minutes on X-axis. In blue: 2.1 KV, orange: 1.5 KV.
+
+```{r}
+#| echo: false
+ggplot(comparison_report,
+       aes(x = RT, y = Precursor.Quantity, color = Run)) +
+  geom_line() + theme_cowplot() +
+  facet_wrap(~Run, scales = "free") +
+  guides(color = FALSE) +
+  xlab("Retention time (min)") + ylab("Precursor quantity") +
+  labs(caption = "different phosphopeptide enrichment strategies") +
+  scale_color_manual(values = c("#56B4E9", "#56B4E9",
+                                "#E69F00", "#E69F00",
+                                "#27AE60", "#27AE60")) +
+  theme(text = element_text(size = 18))
+```
+
+Testing the effect of different enrichment strategies over the phosphorylation site localization confidence and quantity quality per sample. Differences are not significant. One sample from envenomed mouse was considered outlier and envenomed samples were removed from further analysis. **A.** PTM site confidence for each sample (1 - Site.PEP), **B.** Quantity quality; **Color:** blue - results for Fe-NTA enriched peptides, orange - results for TiO2 enriched peptides, green - results for FT from Fe-NTA onto TiO2.
+
+```{r}
+#| echo: false
+#| warning: false
+c1 <- ggplot(filter(comparison_report, PTM.Site.Confidence > .9),
+             aes(x = PTM.Site.Confidence,
+                 y = Run,
+                 fill = Run)) +
+  stat_density_ridges(quantile_lines = TRUE, quantiles = 2,
+                      alpha = 0.5, show.legend = FALSE) +
+  theme_classic() +
+  ylab("Strategy of enrichment") + xlab("PTM site confidence") +
+  scale_fill_manual(values = c("#56B4E9", "#56B4E9",
+                               "#E69F00", "#E69F00",
+                               "#27AE60", "#27AE60"))
+
+c2 <- ggplot(filter(comparison_report, Quantity.Quality >.5),
+             aes(x = Quantity.Quality,
+                 y = Run,
+                 fill = Run)) +
+  stat_density_ridges(quantile_lines = TRUE, quantiles = 2,
+                      alpha = .5, show.legend = FALSE) +
+  theme_classic() +
+  ylab("Strategy of enrichment") + xlab("Quantity quality") +
+  scale_fill_manual(values = c("#56B4E9", "#56B4E9",
+                               "#E69F00", "#E69F00",
+                               "#27AE60", "#27AE60"))
+
+plot_grid(c1, c2, labels = "AUTO",
+          nrow = 1, ncol = 2)
+```
+
+Ion signal per retention time in minutes for control samples. MS2-based quantity of the precursor (charged peptide), non-normalized. Color: phosphopetides enriched after Fe-NTA (blue), phosphopetides enriched after TiO2 (orange), total number of identified peptides (grey background).
+
+```{r}
+#| echo: false
+#| fig-width: 8
+# chromatogram for phosphopepetides enriched using FeIII-NTA (IMAC)
+df1 <- comparison_report %>%
+  filter(Run == "Fe3_ctrl") %>% 
+  select(-Run)
+
+chr1 <- ggplot(filter(comparison_report, 
+                      Run == "Fe3_ctrl" &
+                      str_detect(Modified.Sequence, "UniMod:21")),
+       aes(x = RT, y = Precursor.Quantity, color = Run)) +
+  geom_line(data = df1, color = "grey70") +
+  geom_line(aes(color = Run), alpha = .8) + theme_cowplot() +
+  guides(color = FALSE) +
+  xlab("Retention time (min)") + ylab("Ion signal") +
+  labs(title = "IMAC-enriched peptides") +
+  theme(plot.title = element_text(size = 8)) +
+  scale_color_manual(values = c("#56B4E9"))
+
+# chromatogram for phosphopepetides enriched using TiO2 (IMAC)
+df2 <- comparison_report %>%
+  filter(Run == "TiO2_ctrl") %>% 
+  select(-Run)
+
+chr2 <- ggplot(filter(comparison_report, 
+                      Run == "TiO2_ctrl" &
+                      str_detect(Modified.Sequence, "UniMod:21")),
+       aes(x = RT, y = Precursor.Quantity, color = Run)) +
+  geom_line(data = df2, color = "grey70") +
+  geom_line(aes(color = Run), alpha = .8) + theme_cowplot() +
+  guides(color = FALSE) +
+  xlab("Retention time (min)") + ylab("Ion signal") +
+  theme(plot.title = element_text(size = 8)) +
+  labs(title = "TiO2-enriched peptides") +
+  scale_color_manual(values = c("#E69F00"))
+
+# chromatogram for phosphopepetides enriched using TiO2 (IMAC)
+df3 <- comparison_report %>%
+  filter(Run == "Fe3_TiO2_ctrl") %>% 
+  select(-Run)
+
+chr3 <- ggplot(filter(comparison_report, 
+                      Run == "Fe3_TiO2_ctrl",
+                      str_detect(Modified.Sequence, "UniMod:21")),
+               aes(x = RT, y = Precursor.Quantity, color = Run)) +
+  geom_line(data = df3, color = "grey70") +
+  geom_line(aes(color = Run), alpha = .8) + theme_cowplot() +
+  guides(color = FALSE) +
+  xlab("Retention time (min)") + ylab("Ion signal") +
+  labs(title = "FT from IMAC onto TiO2") +
+  theme(plot.title = element_text(size = 8)) +
+  scale_color_manual(values = c("#27AE60"))
+
+# plotting a panel with all results
+sheet3 <- plot_grid(chr1, chr2, chr3,
+                    labels = "AUTO",
+                    nrow = 1, ncol = 3)
+
+title3 <- ggdraw() + 
+  draw_label("MS2-based quantity of the precursor (charged peptide) 
+non-normalized (control samples)",
+    fontface = 'bold',
+    x = 0,
+    hjust = 0) +
+  theme(plot.margin = margin(0,0,0,7))
+
+plot_grid(title3, sheet3,
+          ncol = 1,
+          rel_heights = c(0.1, 1))
+```
+
+Proportional Venn diagram comparing unique phosphopeptides identified using different strategies. Only peptides containing phosphosite localization \> 0.9 are showed for control samples.
+
+```{r}
+#| echo: false
+pSTY_Fe3_ctrl <- comparison_report %>% 
+  filter(Run == "Fe3_ctrl",
+         str_detect(Modified.Sequence, "UniMod:21"),
+         PTM.Site.Confidence > .9) %>% 
+  select(Run, Modified.Sequence) %>% 
+  distinct(Modified.Sequence, .keep_all = TRUE)
+colnames(pSTY_Fe3_ctrl) <- c("Run","Fe3_ctrl")
+
+pSTY_TiO2_ctrl <- comparison_report %>% 
+  filter(Run == "TiO2_ctrl",
+         str_detect(Modified.Sequence, "UniMod:21"),
+         PTM.Site.Confidence > .9) %>% 
+  select(Run, Modified.Sequence) %>% 
+  distinct(Modified.Sequence, .keep_all = TRUE)
+colnames(pSTY_TiO2_ctrl) <- c("Run","TiO2_ctrl")
+
+pSTY_Fe3_TiO2_ctrl <- comparison_report %>% 
+  filter(Run == "Fe3_TiO2_ctrl",
+         str_detect(Modified.Sequence, "UniMod:21"),
+         PTM.Site.Confidence > .9) %>% 
+  select(Run, Modified.Sequence) %>% 
+  distinct(Modified.Sequence, .keep_all = TRUE)
+colnames(pSTY_Fe3_TiO2_ctrl) <- c("Run","Fe3_TiO2_ctrl")
+
+vennplot <- list("Fe-NTA (ctrl)" = pSTY_Fe3_ctrl$Fe3_ctrl,
+                 "TiO2 (ctrl)" = pSTY_TiO2_ctrl$TiO2_ctrl,
+                 "Fe-NTA+TiO2 (ctrl)" = pSTY_Fe3_TiO2_ctrl$Fe3_TiO2_ctrl)
+
+# Euler diagram  with proportional circle sizes
+plot(euler(vennplot, shape = "circle"), quantities = TRUE)
+```
+
+Proportional Venn diagram comparing unique phosphopeptides identified using different strategies. Only peptides containing phosphosite localization \> 0.9 are showed for envenomed samples.
+
+```{r}
+#| echo: false
+pSTY_Fe3_ven <- comparison_report %>% 
+  filter(Run == "Fe3_ven",
+         str_detect(Modified.Sequence, "UniMod:21"),
+         PTM.Site.Confidence > .9) %>% 
+  select(Run, Modified.Sequence) %>% 
+  distinct(Modified.Sequence, .keep_all = TRUE)
+colnames(pSTY_Fe3_ven) <- c("Run","Fe3_ven")
+
+pSTY_TiO2_ven <- comparison_report %>% 
+  filter(Run == "TiO2_ven",
+         str_detect(Modified.Sequence, "UniMod:21"),
+         PTM.Site.Confidence > .9) %>% 
+  select(Run, Modified.Sequence) %>% 
+  distinct(Modified.Sequence, .keep_all = TRUE)
+colnames(pSTY_TiO2_ven) <- c("Run","TiO2_ven")
+
+pSTY_Fe3_TiO2_ven <- comparison_report %>% 
+  filter(Run == "Fe3_TiO2_ven",
+         str_detect(Modified.Sequence, "UniMod:21"),
+         PTM.Site.Confidence > .9) %>% 
+  select(Run, Modified.Sequence) %>% 
+  distinct(Modified.Sequence, .keep_all = TRUE)
+colnames(pSTY_Fe3_TiO2_ven) <- c("Run","Fe3_TiO2_ven")
+
+# create a list of phosphopeptides filtered and give names to each diagram
+vennplot2 <- list("Fe-NTA (ven)" = pSTY_Fe3_ven$Fe3_ven,
+                 "TiO2 (ven)" = pSTY_TiO2_ven$TiO2_ven,
+                 "Fe-NTA+TiO2 (ven)" = pSTY_Fe3_TiO2_ven$Fe3_TiO2_ven)
+
+# Euler diagram with proportional circle sizes
+plot(euler(vennplot2, shape = "circle"), quantities = TRUE)
+```
+
+## **Comparing FT from TiO2 and Fe-NTA+TiO2**
+
+```{r}
+#| echo: false
+FT_report <- report %>%
+  filter(Run == "AFAC-05.raw" |
+           Run == "AFAC-06.raw" |
+           Run == "AFAC-07.raw" |
+           Run == "AFAC-08.raw")
+FT_report$Run <- gsub("AFAC-05.raw", "FT_IMAC_TiO2_ctrl",
+                            FT_report$Run)
+FT_report$Run <- gsub("AFAC-06.raw", "FT_IMAC_TiO2_ven",
+                            FT_report$Run)
+FT_report$Run <- gsub("AFAC-07.raw", "FT_TiO2_ctrl",
+                            FT_report$Run)
+FT_report$Run <- gsub("AFAC-08.raw", "FT_TiO2_ven",
+                            FT_report$Run)
+FT_report$Run <- factor(FT_report$Run,
+                        levels = c("FT_IMAC_TiO2_ctrl", "FT_TiO2_ctrl",
+                                   "FT_IMAC_TiO2_ven", "FT_TiO2_ven"))
+
+# Filtering only peptides containing UniMod:21 (pSTY) and preserving the background on another dataframe (object df1).
+phosphofiltered5 <- FT_report %>%
+  filter(str_detect(Modified.Sequence, "UniMod:21"))
+df8 <- select(FT_report, -Run)
+```
+
+```{r}
+#| echo: false
+# Preparing panel plots for summarizing FT test
+p5 <- ggplot(FT_report,
+       aes(x = PTM.Site.Confidence,
+           y = Run,
+           fill = Run)) +
+  stat_density_ridges(quantile_lines = TRUE, quantiles = 2,
+                      alpha = 0.5, show.legend = FALSE) +
+  theme_classic() +
+  ylab("Condtition") + xlab("PTM site confidence") +
+  scale_fill_manual(values = c("#56B4E9", "#E69F00", "#56B4E9", "#E69F00"))
+
+p6 <- ggplot(filter(FT_report, Quantity.Quality >.5),
+       aes(x = Quantity.Quality,
+           y = Run,
+           fill = Run)) +
+  stat_density_ridges(quantile_lines = TRUE, quantiles = 2,
+                      alpha = .5, show.legend = FALSE) +
+  theme_classic() +
+  ylab("Condtition") + xlab("Quantity quality") +
+  scale_fill_manual(values = c("#56B4E9", "#E69F00", "#56B4E9", "#E69F00"))
+
+FT_report_stats <- report_stats %>%
+  filter(File.Name == "AFAC-05.raw.dia" |
+           File.Name == "AFAC-06.raw.dia" |
+           File.Name == "AFAC-07.raw.dia" |
+           File.Name == "AFAC-08.raw.dia")
+
+FT_report_stats$File.Name <- gsub("AFAC-05.raw.dia", "FT_IMAC_TiO2_ctrl",
+                            FT_report_stats$File.Name)
+FT_report_stats$File.Name <- gsub("AFAC-06.raw.dia", "FT_IMAC_TiO2_ven",
+                            FT_report_stats$File.Name)
+FT_report_stats$File.Name <- gsub("AFAC-07.raw.dia", "FT_TiO2_ctrl",
+                            FT_report_stats$File.Name)
+FT_report_stats$File.Name <- gsub("AFAC-08.raw.dia", "FT_TiO2_ven",
+                            FT_report_stats$File.Name)
+
+# gradient comparison using file report_stats.tsv
+FT_report_stats$File.Name <- factor(FT_report_stats$File.Name,
+                                levels = c("FT_IMAC_TiO2_ctrl",
+                                           "FT_TiO2_ctrl",
+                                           "FT_IMAC_TiO2_ven", 
+                                           "FT_TiO2_ven"))
+plot9 <- ggplot(FT_report_stats,
+                aes(x = File.Name, y = Precursors.Identified)) +
+  xlab("Condition") + ylab("Precursor count") +
+  geom_col(width = .7, fill = c("#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
+  theme_classic() +
+  geom_text(aes(label = Precursors.Identified),
+            position = position_dodge(width = 0.9), vjust = -0.25) +
+  geom_vline(xintercept = 2.5, color = "grey", linetype = "dashed") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+plot10 <- ggplot(FT_report_stats,
+                aes(x = File.Name, y = Proteins.Identified)) +
+  xlab("Condition") + ylab("Protein inferred") +
+  geom_col(width = .7, fill = c("#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
+  theme_classic() +
+  geom_text(aes(label = Proteins.Identified),
+            position = position_dodge(width = 0.9), vjust = -0.25) +
+  geom_vline(xintercept = 2.5, color = "grey", linetype = "dashed") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+plot11 <- ggplot(FT_report_stats,
+                aes(x = File.Name, y = MS1.Signal)) +
+  xlab("Condition") + ylab("MS1 signal") +
+  geom_col(width = .7, fill = c("#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
+  theme_classic() + coord_flip() +
+  geom_text(aes(label = MS1.Signal),
+            position = position_dodge(width = 0.9), vjust = -0.25) +
+  geom_vline(xintercept = 2.5, color = "grey", linetype = "dashed")
+
+plot12 <- ggplot(FT_report_stats,
+                aes(x = File.Name, y = MS2.Signal)) +
+  xlab("Condition") + ylab("MS2 signal") +
+  geom_col(width = .7, fill = c("#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
+  theme_classic() + coord_flip() +
+  geom_text(aes(label = MS2.Signal),
+            position = position_dodge(width = 0.9), vjust = -0.25) +
+  geom_vline(xintercept = 2.5, color = "grey", linetype = "dashed") +
+  labs(colours = "Gradient")
+```
+
+Peptides identified in the FT coming from TiO2 or Fe-NTA+TiO2 have no evidence supporting phosphorylation site localization, despite the quality of identification. **A.** PTM site confidence for each sample (1 - Site.PEP), **B.** Quantity quality; **Color:** blue - FT from Fe-NTA+TiO2, orange - FT from TiO2.
+
+```{r}
+#| echo: false
+plot_grid(p5, p6, labels = "AUTO",
+          nrow = 1, ncol = 2)
+```
+
+Chromatograms for peptides identified in the flow through from two strategies of phosphopeptide enrichment. FT coming from TiO2 for the control sample is not useful. MS2-based quantity of the precursor (charged peptide), non-normalized is showed in Y-axis and retention time in minutes on X-axis. Blue: FT from Fe-NTA+TiO2, orange: FT from TiO2.
+
+```{r}
+#| echo: false
+ggplot(FT_report,
+       aes(x = RT, y = Precursor.Quantity, color = Run)) +
+  geom_line() + theme_cowplot() +
+  facet_wrap(~Run, scales = "free") +
+  guides(color = FALSE) +
+  xlab("Retention time (min)") + ylab("Precursor quantity") +
+  labs(caption = "Signal from flow through from phosphopeptide enrichment strategies") +
+  scale_color_manual(values = c("#56B4E9", "#E69F00",
+                                "#56B4E9", "#E69F00"))
+```
+
+FT from enrichment using only TiO2 or using the FT from Fe-NTA as input for TiO2. **A.** Number of precursors per sample, **B.** number of inferred proteins per sample; **Color:** blue - FT from Fe-NTA+TiO2 enrichment, orange - FT from TiO2 enrichment.
+
+```{r}
+#| echo: false
+plot_grid(plot9, plot10, labels = "AUTO", nrow = 1, ncol = 2)
+```
+
+Signal of MS1 and MS2 for FT from enrichment using only TiO2 or Fe-NTA+TiO2 (all peptides). **A.** MS1 signal, **B.** MS2 signal; **Color:** blue - FT from Fe-NTA+TiO2 enrichment, orange - FT from TiO2 enrichment.
+
+```{r}
+#| echo: false
+plot_grid(plot11, plot12, labels = "AUTO", nrow = 1, ncol = 2)
+```

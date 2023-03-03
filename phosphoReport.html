@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.1.251">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Phosphopeptide enrichment pilot report</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="phosphoReport_files/libs/clipboard/clipboard.min.js"></script>
+<script src="phosphoReport_files/libs/quarto-html/quarto.js"></script>
+<script src="phosphoReport_files/libs/quarto-html/popper.min.js"></script>
+<script src="phosphoReport_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="phosphoReport_files/libs/quarto-html/anchor.min.js"></script>
+<link href="phosphoReport_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="phosphoReport_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="phosphoReport_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="phosphoReport_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="phosphoReport_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul class="collapse">
+  <li><a href="#description-of-data-analysis-using-dia-nn-report" id="toc-description-of-data-analysis-using-dia-nn-report" class="nav-link active" data-scroll-target="#description-of-data-analysis-using-dia-nn-report"><span class="toc-section-number">1</span>  Description of data analysis using DIA-NN report</a></li>
+  <li><a href="#loading-files-and-libraries" id="toc-loading-files-and-libraries" class="nav-link" data-scroll-target="#loading-files-and-libraries"><span class="toc-section-number">2</span>  Loading files and libraries</a></li>
+  <li><a href="#evaluating-the-effect-of-different-gradients-over-phosphopeptide-enrichment" id="toc-evaluating-the-effect-of-different-gradients-over-phosphopeptide-enrichment" class="nav-link" data-scroll-target="#evaluating-the-effect-of-different-gradients-over-phosphopeptide-enrichment"><span class="toc-section-number">3</span>  <strong>Evaluating the effect of different gradients over phosphopeptide enrichment</strong></a></li>
+  <li><a href="#evaluating-the-effect-of-spray-voltage-1.5-kv-vs-2.1-kv-over-phosphopeptide-enrichment" id="toc-evaluating-the-effect-of-spray-voltage-1.5-kv-vs-2.1-kv-over-phosphopeptide-enrichment" class="nav-link" data-scroll-target="#evaluating-the-effect-of-spray-voltage-1.5-kv-vs-2.1-kv-over-phosphopeptide-enrichment"><span class="toc-section-number">4</span>  <strong>Evaluating the effect of spray voltage (1.5 KV vs 2.1 KV) over phosphopeptide enrichment</strong></a></li>
+  <li><a href="#comparing-different-phosphopeptides-enrichment-strategies-fe-nta-tio2-and-ft-from-fe-nta-onto-tio2-cartridges" id="toc-comparing-different-phosphopeptides-enrichment-strategies-fe-nta-tio2-and-ft-from-fe-nta-onto-tio2-cartridges" class="nav-link" data-scroll-target="#comparing-different-phosphopeptides-enrichment-strategies-fe-nta-tio2-and-ft-from-fe-nta-onto-tio2-cartridges"><span class="toc-section-number">5</span>  <strong>Comparing different phosphopeptides enrichment strategies (Fe-NTA, TiO2, and FT from Fe-NTA onto TiO2 cartridges)</strong></a></li>
+  <li><a href="#comparing-ft-from-tio2-and-fe-ntatio2" id="toc-comparing-ft-from-tio2-and-fe-ntatio2" class="nav-link" data-scroll-target="#comparing-ft-from-tio2-and-fe-ntatio2"><span class="toc-section-number">6</span>  <strong>Comparing FT from TiO2 and Fe-NTA+TiO2</strong></a></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Phosphopeptide enrichment pilot report</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Alison FA Chaves and Bianca CSC Barros </p>
+          </div>
+  </div>
+    
+    
+  </div>
+  
+
+</header>
+
+<section id="description-of-data-analysis-using-dia-nn-report" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="description-of-data-analysis-using-dia-nn-report"><span class="header-section-number">1</span> Description of data analysis using DIA-NN report</h2>
+<p>This is a pilot experiment using two cryopreserved kidney samples, one control and another from envenomed mouse. Peptides were injected in Q-Exactive instrument in DIA mode. Raw files were converted to raw.dia and analyzed using DIA-NN.</p>
+<p>File identification for each test:</p>
+<ul>
+<li><strong>Testing different gradients</strong></li>
+</ul>
+<p>“AFAC_01_oldGrad” stands for eluate from Fe-NTA using an old gradient (sample K2 = SS3Kna1) 250µg</p>
+<p>“AFAC_01” stands for eluate from Fe-NTA using an adjusted gradient (sample K2 = SS3Kna1) 250µg</p>
+<p>“AFAC_02_oldGrad” stands for eluate from Fe-NTA using an old gradient (sample K14 = VS3Kna2) 250µg</p>
+<p>“AFAC_02” stands for eluate from Fe-NTA using an adjusted gradient (sample K14 = VS3Kna2) 250µg</p>
+<ul>
+<li><strong>Flow through from Fe-NTA onto TiO2 cartridges</strong></li>
+</ul>
+<p>“AFAC_03” stands for eluate from TiO2 using an old gradient (sample K2 = SS3Kna1) 250µg</p>
+<p>“AFAC_04” stands for eluate from TiO2 using an old gradient (sample K14 = VS3Kna2) 250µg</p>
+<ul>
+<li><strong>Flow Through from TiO2 coming from IMAC-TiO2 or only TiO2 strategy</strong></li>
+</ul>
+<p>“AFAC_05” stands for FT from IMAC-TiO2 using an old gradient (sample K2 = SS3Kna2) 250µg</p>
+<p>“AFAC_06” stands for FT from IMAC-TiO2 using an old gradient (sample K14 = VS3Kna2) 250µg</p>
+<p>“AFAC_07” stands for FT from TiO2 using an old gradient (sample K1 = SS3Kna1) 500µg</p>
+<p>“AFAC_08” stands for FT from TiO2 using an old gradient (sample K13 = VS3Kna1) 500µg</p>
+<ul>
+<li><strong>Testing different spray voltages (1.5 KV vs 2.1 KV)</strong></li>
+</ul>
+<p>“AFAC_07_221216022013” stands for eluate from TiO2 using an old gradient and 2.1 KV (sample K1 = SS3Kna1) 500µg</p>
+<p>“AFAC_08_221216044325” stands for eluate from TiO2 using an old gradient and 2.1 KV (sample K13 = VS3Kna1) 500µg</p>
+<p>“AFAC_09” stands for eluate from TiO2 using an old gradient and 1.5 KV (sample K1 = SS3Kna1) 500µg</p>
+<p>“AFAC_10” stands for eluate from TiO2 using an old gradient and 1.5 KV (sample K13 = VS3Kna1) 500µg.</p>
+</section>
+<section id="loading-files-and-libraries" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="loading-files-and-libraries"><span class="header-section-number">2</span> Loading files and libraries</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggridges)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggpubr)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cowplot)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(VennDiagram)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(eulerr)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gghalves)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggdist)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>report_stats <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">"report.stats.tsv"</span>)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>report <span class="ot">&lt;-</span> <span class="fu">read_tsv</span>(<span class="st">"report.tsv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="evaluating-the-effect-of-different-gradients-over-phosphopeptide-enrichment" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="evaluating-the-effect-of-different-gradients-over-phosphopeptide-enrichment"><span class="header-section-number">3</span> <strong>Evaluating the effect of different gradients over phosphopeptide enrichment</strong></h2>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+
+</div>
+<p>Protein quantity in log2(MaxLFQ) per sample. In blue: adjusted gradient, orange: old gradient.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Peak width of two samples using different gradients for IMAC-enriched peptides from 250 µg protein. Y-axis: log2(MaxLFQ); X-axis: peak width; color: phosphopetides found using adjusted gradient (blue), phosphopetides found using old gradient (orange), total number of identified peptides (grey background).</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Chromatograms for gradient test. MS2-based quantity of the precursor (charged peptide), non-normalized is showed in Y-axis and retention time in minutes on X-axis. IMAC-enriched peptides from 250 µg protein. in blue: adjusted gradient, orange: old gradient.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+
+</div>
+<p>Testing the effect of adjusted gradient over phosphopeptide enriched using IMAC. Slightly more identifications (all identified peptides) using adjusted gradient. <strong>A.</strong> Number of precursors per sample, <strong>B.</strong> number of inferred proteins per sample; <strong>Color:</strong> blue - results for adjusted gradient, orange - results for old gradient.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Testing the effect of adjusted gradient over the signal of phosphopeptide enriched using IMAC (all peptides). Differences are not consistent between samples and different gradients. <strong>A.</strong> MS1 signal, <strong>B.</strong> MS2 signal; <strong>Color:</strong> blue - results for adjusted gradient, orange - results for old gradient.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Testing the effect of different gradients over the phosphorylation site localization confidence for IMAC-enriched peptides. Differences are not significant. <strong>A.</strong> PTM site confidence for each sample (1 - Site.PEP), <strong>B.</strong> Quantity quality; <strong>Color:</strong> blue - results for adjusted gradient, orange - results for old gradient.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="evaluating-the-effect-of-spray-voltage-1.5-kv-vs-2.1-kv-over-phosphopeptide-enrichment" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="evaluating-the-effect-of-spray-voltage-1.5-kv-vs-2.1-kv-over-phosphopeptide-enrichment"><span class="header-section-number">4</span> <strong>Evaluating the effect of spray voltage (1.5 KV vs 2.1 KV) over phosphopeptide enrichment</strong></h2>
+<div class="cell">
+
+</div>
+<p>Peak width of two samples obtained using different spray voltage (1.5 or 2.1 KV) for TiO2-enriched peptides from 500 µg protein. Y-axis: log2(MaxLFQ); X-axis: peak width; color: phosphopetide found using 2.1 KV (blue), phosphopetides found using 1.5 KV (orange), total number of identified peptides (grey background).</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Chromatograms for spray voltage test. MS2-based quantity of the precursor (charged peptide), non-normalized is showed in Y-axis and retention time in minutes on X-axis. TiO2-enriched peptides from 500 µg protein. in blue: 2.1 KV, orange: 1.5 KV.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+
+</div>
+<p>Testing the effect of spray voltage (1.5 KV vs 2.1 KV) over phosphopeptides enriched using TiO2. Differences in precursor numbers are not consistent, but the number of proteins inferred are slightly higher using 1.5 KV spray voltage. <strong>A.</strong> Number of precursors per sample, <strong>B.</strong> number of inferred proteins per sample; <strong>Color:</strong> blue - results for 2.1 KV, orange - results for 1.5 KV.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Testing the effect of different spray voltage over the signal of phosphopeptides enriched using TiO2 (all peptides). Differences are not consistent between samples and different spray voltages. <strong>A.</strong> MS1 signal, <strong>B.</strong> MS2 signal; <strong>Color:</strong> blue - results for 2.1 KV, orange - results for 1.5 KV.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Testing the effect of different spray voltage over the phosphorylation site localization confidence for TiO2-enriched peptides. Differences are not significant. <strong>A.</strong> PTM site confidence for each sample (1 - Site.PEP), <strong>B.</strong> Quantity quality; <strong>Color:</strong> blue - results for 2.1 KV, orange - results for 1.5 KV.</p>
+<div class="cell">
+<div class="cell-output cell-output-stderr">
+<pre><code>Picking joint bandwidth of 0.00014</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Picking joint bandwidth of 0.00839</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="comparing-different-phosphopeptides-enrichment-strategies-fe-nta-tio2-and-ft-from-fe-nta-onto-tio2-cartridges" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="comparing-different-phosphopeptides-enrichment-strategies-fe-nta-tio2-and-ft-from-fe-nta-onto-tio2-cartridges"><span class="header-section-number">5</span> <strong>Comparing different phosphopeptides enrichment strategies (Fe-NTA, TiO2, and FT from Fe-NTA onto TiO2 cartridges)</strong></h2>
+<div class="cell">
+
+</div>
+<p>Protein intensities for two samples for each strategy. Y-axis stands for log2(MaxLFQ). X-axis stands for sample. Color stands for strategy, where blue: Fe-NTA, orange: TiO2, and green: FT from IMAC onto TiO2.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Peak width of two samples using different phosphopeptide enrichment strategies. TiO2 used 500 µg proteins, all other used 250 µg proteins. Y-axis: log2(MaxLFQ); X-axis: peak width; color: phosphopetides enriched after Fe-NTA (blue), phosphopetides enriched after TiO2 (orange), total number of identified peptides (grey background).</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Chromatograms for different phosphoenrichment strategies. MS2-based quantity of the precursor (charged peptide), non-normalized is showed in Y-axis and retention time in minutes on X-axis. In blue: 2.1 KV, orange: 1.5 KV.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Testing the effect of different enrichment strategies over the phosphorylation site localization confidence and quantity quality per sample. Differences are not significant. One sample from envenomed mouse was considered outlier and envenomed samples were removed from further analysis. <strong>A.</strong> PTM site confidence for each sample (1 - Site.PEP), <strong>B.</strong> Quantity quality; <strong>Color:</strong> blue - results for Fe-NTA enriched peptides, orange - results for TiO2 enriched peptides, green - results for FT from Fe-NTA onto TiO2.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Peak width for samples using different phosphopeptide enrichment strategies. Y-axis: log2(MaxLFQ); X-axis: peak width; color: phosphopetides enriched after Fe-NTA (blue), phosphopetides enriched after TiO2 (orange), total number of identified peptides (grey background). TiO2 used 500µg proteins, all other used 250 µg proteins. Only control samples are shown.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Ion signal per retention time in minutes for control samples. MS2-based quantity of the precursor (charged peptide), non-normalized. Color: phosphopetides enriched after Fe-NTA (blue), phosphopetides enriched after TiO2 (orange), total number of identified peptides (grey background).</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-24-1.png" class="img-fluid" width="768"></p>
+</div>
+</div>
+<p>Proportion of phosphosites identified in each strategy. Numbers over the bars represents the frequency of phosphopeptides related to total peptide IDs in each strategy. It was possible to find the phosphosite localization in 28% of peptides eluted from Fe-NTA cartridge, 3% of peptides eluted from TiO2 cartridge, and 11% of peptides coming from FT of Fe-NTA and loaded onto TiO2.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-25-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Proportional Venn diagram comparing unique phosphopeptides identified using different strategies. Only peptides containing phosphosite localization were counted.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-26-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="comparing-ft-from-tio2-and-fe-ntatio2" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="comparing-ft-from-tio2-and-fe-ntatio2"><span class="header-section-number">6</span> <strong>Comparing FT from TiO2 and Fe-NTA+TiO2</strong></h2>
+<div class="cell">
+
+</div>
+<div class="cell">
+
+</div>
+<p>Peptides identified in the FT coming from TiO2 or Fe-NTA+TiO2 have no evidence supporting phosphorylation site localization, despite the quality of identification. <strong>A.</strong> PTM site confidence for each sample (1 - Site.PEP), <strong>B.</strong> Quantity quality; <strong>Color:</strong> blue - FT from Fe-NTA+TiO2, orange - FT from TiO2.</p>
+<div class="cell">
+<div class="cell-output cell-output-stderr">
+<pre><code>Picking joint bandwidth of 0.145</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Picking joint bandwidth of 0.00824</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-29-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Chromatograms for peptides identified in the flow through from two strategies of phosphopeptide enrichment. FT coming from TiO2 for the control sample is not useful. MS2-based quantity of the precursor (charged peptide), non-normalized is showed in Y-axis and retention time in minutes on X-axis. Blue: FT from Fe-NTA+TiO2, orange: FT from TiO2.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-30-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>FT from enrichment using only TiO2 or using the FT from Fe-NTA as input for TiO2. <strong>A.</strong> Number of precursors per sample, <strong>B.</strong> number of inferred proteins per sample; <strong>Color:</strong> blue - FT from Fe-NTA+TiO2 enrichment, orange - FT from TiO2 enrichment.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-31-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Signal of MS1 and MS2 for FT from enrichment using only TiO2 or Fe-NTA+TiO2 (all peptides). <strong>A.</strong> MS1 signal, <strong>B.</strong> MS2 signal; <strong>Color:</strong> blue - FT from Fe-NTA+TiO2 enrichment, orange - FT from TiO2 enrichment.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="phosphoReport_files/figure-html/unnamed-chunk-32-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
